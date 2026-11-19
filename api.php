@@ -1,5 +1,5 @@
 <?php
-require "koneksi.php";
+require __DIR__ . "/koneksi.php";
 
 $aksi = $_GET["aksi"] ?? "list";
 $in   = json_decode(file_get_contents("php://input"), true) ?? [];

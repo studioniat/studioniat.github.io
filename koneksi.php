@@ -1,4 +1,9 @@
 <?php
+// Semua error dikirim sebagai JSON (bukan halaman HTML)
+ini_set("display_errors", "0");
+error_reporting(E_ALL);
+ob_start();
+
 // ===== PENGATURAN: sesuaikan dengan MySQL Anda =====
 $DB_HOST = "localhost";
 $DB_NAME = "timekeeper";
@@ -10,11 +15,26 @@ $FIELDS   = ["kat", "jdl", "pen", "thb", "tv", "dl", "ty"];
 $KATEGORI = ["Cover Song", "New Song", "Podcast", "Karakoe"];
 
 function jsonOut($data, $code = 200) {
+    if (ob_get_length()) { ob_clean(); }          // buang keluaran liar
     http_response_code($code);
     header("Content-Type: application/json; charset=utf-8");
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+// Error yang tidak tertangkap -> JSON
+set_exception_handler(function ($e) {
+    jsonOut(["error" => "Kesalahan server: " . $e->getMessage()], 500);
+});
+register_shutdown_function(function () {
+    $e = error_get_last();
+    if ($e && in_array($e["type"], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        if (ob_get_length()) { ob_clean(); }
+        http_response_code(500);
+        header("Content-Type: application/json; charset=utf-8");
+        echo json_encode(["error" => "Kesalahan PHP: " . $e["message"]], JSON_UNESCAPED_UNICODE);
+    }
+});
 
 try {
     $pdo = new PDO("mysql:host=$DB_HOST;charset=utf8mb4", $DB_USER, $DB_PASS, [

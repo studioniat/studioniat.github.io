@@ -131,6 +131,42 @@
     td input:focus, td select:focus {
       outline: none; border-color: var(--ac); background: #fff;
     }
+
+    /* ===== Responsif: layar kecil ===== */
+    @media (max-width: 900px) {
+      .wrap { padding: 12px; }
+      .login { margin: 6vh 12px; }
+      .bar .e { font-size: 18px; }
+      .badge { font-size: 13px; margin-left: 6px; }
+      .bar button, .tools button { font-size: 16px; padding: 10px 18px; border-width: 3px; }
+      .tools { flex-wrap: wrap; gap: 10px; }
+      #st { font-size: 14px; }
+      .judul { font-size: 20px; }
+
+      /* Tabel menjadi kartu */
+      .tw { overflow-x: visible; }
+      table { display: block; min-width: 0; border-spacing: 0; }
+      thead { display: none; }
+      tbody { display: block; }
+      tr {
+        display: block; background: #fff; border: 1px solid var(--ln);
+        border-radius: 16px; padding: 8px 14px; margin-bottom: 12px;
+      }
+      td {
+        display: flex; align-items: center; gap: 12px;
+        height: auto; padding: 6px 0; background: transparent;
+        border: 0 !important; border-radius: 0 !important; font-size: 15px;
+      }
+      td::before {
+        content: attr(data-label); flex: 0 0 105px;
+        font-size: 11px; font-weight: 700; letter-spacing: .04em;
+        color: var(--mut); text-transform: uppercase;
+      }
+      td input, td select { flex: 1; min-width: 0; border-color: var(--ln); background: #fff; }
+      td.kosong { display: block; }
+      td.kosong::before, td.aksi::before { display: none; }
+      td.aksi { justify-content: flex-end; }
+    }
   </style>
 </head>
 
@@ -318,30 +354,31 @@
 
     function rowHtml(i, isAdmin) {
       const r = rows[i];
-      const no = `<td class="no">${i + 1}</td>`;
+      const no = `<td class="no" data-label="No">${i + 1}</td>`;
+      const LBL = { tv: "Tgl take vokal", dl: "Deadline", ty: "Tayang" };
 
       // --- Tampilan User (hanya lihat) ---
       if (!isAdmin) {
         const w = WARNA[r.kat] || ["#eef2f6", "#475569"];
         const tgl = TANGGAL.map((f) =>
-          `<td class="tgl">${r[f] ? esc(fmt(r[f])) : '<span class="e">–</span>'}</td>`).join("");
+          `<td class="tgl" data-label="${LBL[f]}">${r[f] ? esc(fmt(r[f])) : '<span class="e">–</span>'}</td>`).join("");
         return `<tr>${no}
-          <td><span class="kat" style="background:${w[0]};color:${w[1]}">${esc(r.kat)}</span></td>
-          <td class="jdl">${esc(r.jdl || "")}</td>
-          <td>${esc(r.pen || "")}</td>
-          <td>${esc(r.thb || "")}</td>${tgl}</tr>`;
+          <td data-label="Kategori"><span class="kat" style="background:${w[0]};color:${w[1]}">${esc(r.kat)}</span></td>
+          <td class="jdl" data-label="Judul">${esc(r.jdl || "")}</td>
+          <td data-label="Penyanyi">${esc(r.pen || "")}</td>
+          <td data-label="Judul thumbnail">${esc(r.thb || "")}</td>${tgl}</tr>`;
       }
 
       // --- Tampilan Admin (bisa edit) ---
       const opsi = KATEGORI.map((k) =>
         `<option${k === r.kat ? " selected" : ""}>${esc(k)}</option>`).join("");
-      const inp = (f, tipe) =>
-        `<td><input data-i="${i}" data-f="${f}" type="${tipe}" value="${esc(r[f] || "")}"></td>`;
+      const inp = (f, tipe, label) =>
+        `<td data-label="${label}"><input data-i="${i}" data-f="${f}" type="${tipe}" value="${esc(r[f] || "")}"></td>`;
 
       return `<tr>${no}
-        <td><select data-i="${i}" data-f="kat">${opsi}</select></td>
-        ${inp("jdl", "text")}${inp("pen", "text")}${inp("thb", "text")}
-        ${inp("tv", "date")}${inp("dl", "date")}${inp("ty", "date")}
+        <td data-label="Kategori"><select data-i="${i}" data-f="kat">${opsi}</select></td>
+        ${inp("jdl", "text", "Judul")}${inp("pen", "text", "Penyanyi")}${inp("thb", "text", "Judul thumbnail")}
+        ${inp("tv", "date", "Tgl take vokal")}${inp("dl", "date", "Deadline")}${inp("ty", "date", "Tayang")}
         <td class="aksi"><button class="del" data-del="${i}" title="Hapus baris">✕</button></td></tr>`;
     }
 

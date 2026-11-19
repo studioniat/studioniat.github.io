@@ -44,13 +44,13 @@
     .login {
       max-width: 380px; margin: 12vh auto; background: var(--card);
       border: 1px solid var(--ln); border-radius: 16px; padding: 28px;
-      background-image: ;
     }
     .err  { color: #c0392b; font-size: 13px; margin-top: 8px; min-height: 18px; }
     .note { font-size: 13px; color: var(--mut); margin-top: 10px; }
     .warn {
       background: #fdecea; color: #a93226; border: 1px solid #f5c6cb;
       border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 15px;
+      word-break: break-word;
     }
 
     /* ===== Bagian atas ===== */
@@ -209,7 +209,9 @@
       try {
         data = JSON.parse(teks);
       } catch (e) {
-        throw new Error("Jawaban server bukan JSON. Periksa api.php dan koneksi.php.");
+        // Tampilkan isi balasan server supaya penyebabnya kelihatan
+        const isi = teks.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 250);
+        throw new Error(`Balasan server bukan JSON (HTTP ${res.status}): ${isi || "(kosong)"}`);
       }
       if (!res.ok || data.error) throw new Error(data.error || "Terjadi kesalahan.");
       return data;

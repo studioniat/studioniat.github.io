@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="only light">
   <title>Time Keeper – Project Nanoe Biroe</title>
 
   <style>
     /* ===== Warna & dasar (selalu terang) ===== */
     :root {
-      color-scheme: light;
+      color-scheme: only light;
       --bg: #f8f9fb; --card: #fff; --tx: #1e2a38; --mut: #64748b;
       --ln: #e3e8ef; --ac: #1d6b5a; --hd: #e8efe9;
       --th-bg: #629dc9;     /* warna latar judul kolom (biru) */
       --th-tx: #1e2a38;     /* warna tulisan judul kolom */
     }
     * { box-sizing: border-box; }
+    html { background: #f8f9fb; color-scheme: only light; }
     body {
       margin: 0; background: var(--bg); color: var(--tx);
       font: 15px/1.45 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -130,6 +132,22 @@
     td input:hover, td select:hover { border-color: var(--ln); background: #fff; }
     td input:focus, td select:focus {
       outline: none; border-color: var(--ac); background: #fff;
+    }
+
+    /* ===== Responsif: layar kecil (tabel tetap, bisa digeser ke samping) ===== */
+    @media (max-width: 900px) {
+      .wrap { padding: 12px; }
+      .login { margin: 6vh 12px; }
+      .bar .e { font-size: 18px; }
+      .badge { font-size: 13px; margin-left: 6px; }
+      .bar button, .tools button { font-size: 16px; padding: 10px 18px; border-width: 3px; }
+      .tools { flex-wrap: wrap; gap: 10px; }
+      #st { font-size: 14px; }
+      .judul { font-size: 20px; }
+
+      /* Tabel tetap utuh, digeser ke samping dengan jari */
+      .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 1100px; }
     }
   </style>
 </head>

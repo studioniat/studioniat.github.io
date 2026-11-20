@@ -16,9 +16,31 @@
       --th-tx: #1e2a38;     /* warna tulisan judul kolom */
     }
     * { box-sizing: border-box; }
-    html { background: #f8f9fb; color-scheme: only light; }
+
+    /* Gambar latar: tampil di SEMUA halaman (login & tabel) */
+    html {
+      min-height: 100%;
+      color-scheme: only light;
+      background-color: #f8f9fb;
+      background-image: url("image/WhatsApp%20Image%202026-11-20%20at%2011.38.06.jpeg");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;        /* utuh, tidak terpotong */
+      background-attachment: fixed;    /* tetap saat halaman digulir */
+    }
+
+    html.app-page {
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)),
+        url("image/WhatsApp%20Image%202026-11-20%20at%2011.38.06.jpeg");
+      background-size: contain;
+      background-position: center;
+    }
+
     body {
-      margin: 0; background: var(--bg); color: var(--tx);
+      margin: 0; min-height: 100vh;
+      background: transparent;         /* supaya gambar di html terlihat */
+      color: var(--tx);
       font: 15px/1.45 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
     }
     .wrap { width: 100%; padding: 16px; }
@@ -43,9 +65,13 @@
     }
 
     /* ===== Login ===== */
+    /* Posisi kotak login: ubah angka 26vh untuk naik/turun */
     .login {
-      max-width: 380px; margin: 12vh auto; background: var(--card);
+      max-width: 380px; margin: 0 auto;
+      position: relative; top: 26vh;
+      background: var(--card);
       border: 1px solid var(--ln); border-radius: 16px; padding: 28px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
     }
     .err  { color: #c0392b; font-size: 13px; margin-top: 8px; min-height: 18px; }
     .note { font-size: 13px; color: var(--mut); margin-top: 10px; }
@@ -134,10 +160,32 @@
       outline: none; border-color: var(--ac); background: #fff;
     }
 
+    /* ===== Tulisan di atas gambar diberi kotak putih agar tetap terbaca ===== */
+    .bar > div:first-child {
+      background: rgba(255, 255, 255, 0.92);
+      padding: 10px 18px;
+      border-radius: 14px;
+    }
+    .judul {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 8px 20px;
+      border-radius: 14px;
+    }
+    #st {
+      background: rgba(255, 255, 255, 0.92);
+      padding: 8px 14px;
+      border-radius: 10px;
+    }
+
+    /* Baris data sedikit transparan, gambar samar terlihat di sela-selanya */
+    td { background: rgba(255, 255, 255, 0.93); }
+    tbody tr:hover td { background: rgba(255, 255, 255, 1); }
+
     /* ===== Responsif: layar kecil (tabel tetap, bisa digeser ke samping) ===== */
     @media (max-width: 900px) {
       .wrap { padding: 12px; }
-      .login { margin: 6vh 12px; }
+      .login { margin: 0 12px; top: 18vh; }
       .bar .e { font-size: 18px; }
       .badge { font-size: 13px; margin-left: 6px; }
       .bar button, .tools button { font-size: 16px; padding: 10px 18px; border-width: 3px; }
@@ -479,7 +527,11 @@
        JALANKAN
        ========================================================= */
 
-    function render() { me ? renderApp() : renderLogin(); }
+    function render() {
+      // Halaman tabel: gambar memenuhi layar dengan lapisan putih sangat tipis
+      document.documentElement.classList.toggle("app-page", !!me);
+      me ? renderApp() : renderLogin();
+    }
 
     loadSession();
     render();

@@ -17,29 +17,41 @@
     }
     * { box-sizing: border-box; }
 
-    /* Gambar latar: tampil di SEMUA halaman (login & tabel) */
     html {
       min-height: 100%;
       color-scheme: only light;
       background-color: #f8f9fb;
-      background-image: url("image/latar.jpeg");
+    }
+
+    /* ===== Gambar latar (elemen tersendiri, tampil di SEMUA halaman) ===== */
+    #latar {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-color: #f8f9fb;
       background-repeat: no-repeat;
       background-position: center center;
       background-size: contain;        /* utuh, tidak terpotong */
-      background-attachment: fixed;    /* tetap saat halaman digulir */
+      pointer-events: none;
     }
-
-    html.app-page {
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)),
-        url("image/latar.jpeg");
-      background-size: contain;
-      background-position: center;
+    /* Halaman tabel: lapisan putih tipis di atas gambar */
+    html.app-page #latar::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    /* Pesan jika gambar gagal dimuat */
+    #latar-err {
+      position: fixed; left: 10px; bottom: 10px; z-index: 9999;
+      background: #fdecea; color: #a93226; border: 1px solid #f5c6cb;
+      border-radius: 8px; padding: 8px 12px; font-size: 13px;
+      max-width: 90vw; display: none;
     }
 
     body {
       margin: 0; min-height: 100vh;
-      background: transparent;         /* supaya gambar di html terlihat */
+      background: transparent;
       color: var(--tx);
       font: 15px/1.45 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
     }
@@ -193,7 +205,6 @@
       #st { font-size: 14px; }
       .judul { font-size: 20px; }
 
-      /* Tabel tetap utuh, digeser ke samping dengan jari */
       .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       table { min-width: 1100px; }
     }
@@ -201,9 +212,45 @@
 </head>
 
 <body>
+  <!-- Lapisan gambar latar -->
+  <div id="latar"></div>
+  <div id="latar-err"></div>
+
   <div id="app"></div>
 
   <script>
+    /* =========================================================
+       GAMBAR LATAR
+       Daftar nama file yang dicoba berurutan sampai ada yang ketemu.
+       ========================================================= */
+    const LATAR_KANDIDAT = [
+      "image/latar.jpeg",
+      "image/latar.jpg",
+      "image/latar.png",
+      "image/latar.webp",
+    ];
+
+    (function muatLatar() {
+      const el = document.getElementById("latar");
+      const pesan = document.getElementById("latar-err");
+      let i = 0;
+
+      function coba() {
+        if (i >= LATAR_KANDIDAT.length) {
+          pesan.textContent = "Gambar latar tidak ditemukan. Pastikan file ada di: " +
+            LATAR_KANDIDAT[0] + " (cek nama, huruf besar/kecil, dan sudah di-push ke GitHub).";
+          pesan.style.display = "block";
+          return;
+        }
+        const url = LATAR_KANDIDAT[i++];
+        const img = new Image();
+        img.onload = () => { el.style.backgroundImage = 'url("' + url + '")'; };
+        img.onerror = coba;
+        img.src = url;
+      }
+      coba();
+    })();
+
     /* =========================================================
        PENGATURAN
        ========================================================= */
@@ -528,7 +575,7 @@
        ========================================================= */
 
     function render() {
-      // Halaman tabel: gambar memenuhi layar dengan lapisan putih sangat tipis
+      // Halaman tabel: lapisan putih sangat tipis di atas gambar
       document.documentElement.classList.toggle("app-page", !!me);
       me ? renderApp() : renderLogin();
     }

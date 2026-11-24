@@ -192,9 +192,8 @@
   <div id="app"></div>
 
   <script>
-    /* ===== BARU: isi dengan URL Firebase Realtime Database kamu =====
-       Contoh: "https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app" */
-    const DB_URL = "";
+    /* URL Firebase Realtime Database */
+    const DB_URL = "https://timekeeper-studioniat-default-rtdb.asia-southeast1.firebasedatabase.app";
 
     const ADMINS = ["bayu", "nanoe biroe"];
     const REFRESH_MS = 15000;
@@ -245,7 +244,7 @@
       ["New Song", "Cening", "", ""],
     ];
 
-    /* ===== BARU: penyimpanan di Firebase (menggantikan localStorage) ===== */
+    /* ===== Penyimpanan di Firebase (menggantikan localStorage) ===== */
     async function fb(method, path, data) {
       if (!DB_URL) throw new Error("DB_URL belum diisi di kode.");
       const res = await fetch(DB_URL.replace(/\/$/, "") + path + ".json", {

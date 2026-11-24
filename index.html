@@ -192,6 +192,10 @@
   <div id="app"></div>
 
   <script>
+    /* ===== BARU: isi dengan URL Firebase Realtime Database kamu =====
+       Contoh: "https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app" */
+    const DB_URL = "";
+
     const ADMINS = ["bayu", "nanoe biroe"];
     const REFRESH_MS = 15000;
 
@@ -227,7 +231,6 @@
     function saveSession()  { try { sessionStorage.setItem("tk_me", JSON.stringify(me)); } catch (e) {} }
     function clearSession() { try { sessionStorage.removeItem("tk_me"); } catch (e) {} }
 
-    const DB_KEY = "tk_daftar_v1";
     const FIELDS = ["kat", "jdl", "pen", "thb", "tv", "dl", "ty"];
     const AWAL = [
       ["Cover Song", "Tresna Lintas Planet", "Risma", "TRESNA LINTAS PLANET Versi Cewek: Kisah Nyentana"],
@@ -242,50 +245,63 @@
       ["New Song", "Cening", "", ""],
     ];
 
-    function bacaDB() {
-      try {
-        const d = JSON.parse(localStorage.getItem(DB_KEY) || "null");
-        if (d && Array.isArray(d.rows)) return d;
-      } catch (e) {}
-      const d = { next: AWAL.length + 1, rows: AWAL.map((r, i) => (
-        { id: i + 1, kat: r[0], jdl: r[1], pen: r[2], thb: r[3], tv: "", dl: "", ty: "" })) };
-      tulisDB(d);
-      return d;
+    /* ===== BARU: penyimpanan di Firebase (menggantikan localStorage) ===== */
+    async function fb(method, path, data) {
+      if (!DB_URL) throw new Error("DB_URL belum diisi di kode.");
+      const res = await fetch(DB_URL.replace(/\/$/, "") + path + ".json", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: data === undefined ? undefined : JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Server menolak permintaan (" + res.status + "). Cek aturan database.");
+      return res.json();
     }
-    function tulisDB(d) {
-      try { localStorage.setItem(DB_KEY, JSON.stringify(d)); }
-      catch (e) { throw new Error("Penyimpanan browser penuh / diblokir."); }
+
+    function toArray(map) {
+      return Object.entries(map || {})
+        .map(([id, v]) => ({ ...emptyRow(), ...v, id }))
+        .sort((a, b) => (a.o || 0) - (b.o || 0));
     }
 
     async function api(aksi, body = {}) {
       const nama = (me ? me.name : "").trim().toLowerCase();
-      const d = bacaDB();
 
-      if (aksi === "list") return { rows: d.rows };
+      if (aksi === "list") {
+        let map = await fb("GET", "/rows");
+        if (!map) {
+          const sudah = await fb("GET", "/seeded");
+          if (!sudah) {
+            map = {};
+            AWAL.forEach((r, i) => {
+              map["r" + (i + 1)] = { o: i + 1, kat: r[0], jdl: r[1], pen: r[2], thb: r[3], tv: "", dl: "", ty: "" };
+            });
+            await fb("PUT", "/rows", map);
+            await fb("PUT", "/seeded", true);
+          }
+        }
+        return { rows: toArray(map) };
+      }
+
       if (!ADMINS.includes(nama)) throw new Error("Hanya admin yang boleh mengubah data.");
 
       if (aksi === "tambah") {
-        const id = d.next++;
-        d.rows.push({ id, kat: "Cover Song", jdl: "", pen: "", thb: "", tv: "", dl: "", ty: "" });
-        tulisDB(d);
+        const o = Date.now();
+        const id = "r" + o;
+        await fb("PUT", "/rows/" + id, { o, ...emptyRow() });
         return { ok: true, id };
       }
       if (aksi === "ubah") {
-        const r = d.rows.find((x) => x.id === Number(body.id));
         const f = body.field;
         const v = String(body.nilai ?? "").trim().slice(0, 255);
-        if (!r || !FIELDS.includes(f)) throw new Error("Data tidak valid.");
+        if (!body.id || !FIELDS.includes(f)) throw new Error("Data tidak valid.");
         if (f === "kat" && !KATEGORI.includes(v)) throw new Error("Kategori tidak valid.");
         if (TANGGAL.includes(f) && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new Error("Format tanggal tidak valid.");
-        r[f] = v;
-        tulisDB(d);
+        await fb("PATCH", "/rows/" + body.id, { [f]: v });
         return { ok: true };
       }
       if (aksi === "hapus") {
-        const n = d.rows.length;
-        d.rows = d.rows.filter((x) => x.id !== Number(body.id));
-        if (d.rows.length === n) throw new Error("Data tidak valid.");
-        tulisDB(d);
+        if (!body.id) throw new Error("Data tidak valid.");
+        await fb("DELETE", "/rows/" + body.id);
         return { ok: true };
       }
       throw new Error("Aksi tidak dikenal.");
@@ -380,7 +396,7 @@
       const adminTools = isAdmin ? `
         <div class="tools">
           <button id="add">+ Tambah baris</button>
-          <span id="st">Perubahan tersimpan otomatis di browser ini.</span>
+          <span id="st">Perubahan tersimpan otomatis di server.</span>
         </div>` : "";
 
       app.innerHTML = `
